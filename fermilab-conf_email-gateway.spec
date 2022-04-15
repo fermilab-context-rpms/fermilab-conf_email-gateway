@@ -1,6 +1,6 @@
 Name:		fermilab-conf_email-gateway
 Version:	1.1
-Release:	4%{?dist}
+Release:	5%{?dist}
 Summary:	Configure postfix to use the FNAL email gateway
 
 # can drop with EL9+
@@ -121,8 +121,8 @@ postconf -e smtp_tls_security_level=may
 
 # FNAL specifics
 postconf -e mydomain=fnal.gov
-postconf -e 'masquerade_domains=$mydomain'
-postconf -e 'masquerade_classes=envelope_sender'
+#postconf -e 'masquerade_domains=$mydomain'
+#postconf -e 'masquerade_classes=envelope_sender'
 postconf -e 'relayhost=[smtp.fnal.gov]:587'
 
 systemctl condrestart postfix.service
@@ -212,8 +212,8 @@ fi
 postconf -n mydomain | grep -q fnal.gov
 if [[ $? -eq 0 ]]; then
     postconf -X mydomain
-    postconf -X masquerade_domains || :
-    postconf -X masquerade_classes || :
+    #postconf -X masquerade_domains || :
+    #postconf -X masquerade_classes || :
 fi
 postconf -n relayhost |grep -q smtp.fnal.gov
 if [[ $? -eq 0 ]]; then
@@ -226,6 +226,9 @@ systemctl condrestart postfix.service
 #####################################################################
 #####################################################################
 %changelog
+* Fri Apr 15 2022 Pat Riehecky <riehecky@fnal.gov> 1.1-5
+- Disable masquerade_domains
+
 * Mon Feb 21 2022 Pat Riehecky <riehecky@fnal.gov> 1.1-4
 - Prep for IPv6 and full TLS
 - Setup masquerade_domains
