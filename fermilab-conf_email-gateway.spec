@@ -3,8 +3,9 @@ Version:	1.1
 Release:	5%{?dist}
 Summary:	Configure postfix to use the FNAL email gateway
 
-# can drop with EL9+
+%if 0%{?rhel} < 10
 Obsoletes:	zz_postfix_fermi_gateway
+%endif
 
 Group:		Fermilab
 License:	GPL
