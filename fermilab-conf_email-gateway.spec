@@ -1,6 +1,6 @@
 Name:		fermilab-conf_email-gateway
 Version:	1.1
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	Configure postfix to use the FNAL email gateway
 
 %if 0%{?rhel} < 10
@@ -114,7 +114,7 @@ fi
 
 
 # sane defaults for "everyone"
-postconf -e inet_interfaces=localhost
+postconf -e inet_interfaces=loopback-only
 postconf -e inet_protocols=all
 postconf -e 'mynetworks=127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128'
 postconf -e 'mydestination=$myorigin, localhost.$mydomain, localhost'
@@ -227,6 +227,9 @@ systemctl condrestart postfix.service
 #####################################################################
 #####################################################################
 %changelog
+* Mon Apr 14 2025 Pat Riehecky <riehecky@fnal.gov> 1.1-6
+- start using inet_interfaces=loopback-only
+
 * Fri Apr 15 2022 Pat Riehecky <riehecky@fnal.gov> 1.1-5
 - Disable masquerade_domains
 
