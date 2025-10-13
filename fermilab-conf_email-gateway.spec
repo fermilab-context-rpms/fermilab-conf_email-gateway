@@ -10,9 +10,12 @@ URL:		https://github.com/fermilab-context-rpms/fermilab-conf_email-gateway
 BuildArch:	noarch
 BuildRequires:	systemd-rpm-macros
 
-%systemd_requires
-%systemd_ordering
-
+Requires(post): systemd
+Requires(preun): systemd
+Requires(postun): systemd
+OrderWithRequires(post): systemd
+OrderWithRequires(preun): systemd
+OrderWithRequires(postun): systemd
 
 %description
 Email sent from Fermilab's network must route through an authorized SMTP server.
