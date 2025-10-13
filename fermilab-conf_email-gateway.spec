@@ -1,19 +1,18 @@
 Name:		fermilab-conf_email-gateway
-Version:	1.1
-Release:	6%{?dist}
+Version:	1.2
+Release:	1%{?dist}
 Summary:	Configure postfix to use the FNAL email gateway
-
-%if 0%{?rhel} < 10
-Obsoletes:	zz_postfix_fermi_gateway
-%endif
 
 Group:		Fermilab
 License:	GPL
 URL:		https://github.com/fermilab-context-rpms/fermilab-conf_email-gateway
 
 BuildArch:	noarch
+BuildRequires:	systemd-rpm-macros
 
-Requires(post):	systemd
+%systemd_requires
+%systemd_ordering
+
 
 %description
 Email sent from Fermilab's network must route through an authorized SMTP server.
@@ -33,7 +32,7 @@ See: KB0010765
 %defattr(0644,root,root,0755)
 
 #####################################################################
-%triggerin -p /bin/bash -- postfix 
+%triggerin -p /bin/bash -- postfix
 
 ##################### BEGIN Trigger Snippet #########################
 set -u
@@ -120,17 +119,19 @@ postconf -e 'mynetworks=127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128'
 postconf -e 'mydestination=$myorigin, localhost.$mydomain, localhost'
 postconf -e smtp_tls_security_level=may
 
+# lookup srv record for SMTP submission in your domain
+# a safe default since someone had to make the DNS records for your domain
+postconf -e use_srv_lookup=submission
+postconf -e 'relayhost=$mydomain:submission'
+
 # FNAL specifics
 postconf -e mydomain=fnal.gov
-#postconf -e 'masquerade_domains=$mydomain'
-#postconf -e 'masquerade_classes=envelope_sender'
-postconf -e 'relayhost=[smtp.fnal.gov]:587'
 
-systemctl condrestart postfix.service
+systemctl try-restart postfix.service
 #####################################################################
 
 #####################################################################
-%triggerun -p /bin/bash -- postfix 
+%triggerun -p /bin/bash -- postfix
 
 ##################### BEGIN Trigger Snippet #########################
 set -u
@@ -213,20 +214,18 @@ fi
 postconf -n mydomain | grep -q fnal.gov
 if [[ $? -eq 0 ]]; then
     postconf -X mydomain
-    #postconf -X masquerade_domains || :
-    #postconf -X masquerade_classes || :
 fi
-postconf -n relayhost |grep -q smtp.fnal.gov
-if [[ $? -eq 0 ]]; then
-    postconf -X relayhost
-fi
-systemctl condrestart postfix.service
+
+systemctl try-restart postfix.service
 #####################################################################
 
 
 #####################################################################
 #####################################################################
 %changelog
+* Mon Oct 13 2025 Pat Riehecky <riehecky@fnal.gov> 1.2-1
+- start using srv lookups (EL10+, postfix 3.8+)
+
 * Mon Apr 14 2025 Pat Riehecky <riehecky@fnal.gov> 1.1-6
 - start using inet_interfaces=loopback-only
 
